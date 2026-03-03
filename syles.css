@@ -58,6 +58,45 @@ header h1 {
     font-size: 1.1em;
 }
 
+/* 管理者登入 */
+.admin-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.admin-login h3 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.login-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.login-form input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.hint-text {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.hint-text code {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
 /* 管理者面板 */
 .admin-panel {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -69,6 +108,13 @@ header h1 {
 
 .admin-panel h2 {
     color: white;
+    margin-bottom: 20px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -85,6 +131,28 @@ header h1 {
     border-radius: 10px;
     margin-top: 15px;
     font-size: 1.1em;
+}
+
+/* 手動選擇店家 */
+#manualSelectSection {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+#manualSelectSection h3 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.shop-select {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 10px;
 }
 
 /* 按鈕樣式 */
@@ -164,6 +232,11 @@ header h1 {
     margin-top: 20px;
 }
 
+.btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
 /* 投票區 */
 .vote-grid {
     display: grid;
@@ -180,6 +253,7 @@ header h1 {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
 }
 
 .vote-card:hover {
@@ -208,6 +282,17 @@ header h1 {
     font-size: 1.2em;
     color: #f5576c;
     font-weight: bold;
+}
+
+.view-menu-hint {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f5576c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
 }
 
 .vote-results {
@@ -466,79 +551,6 @@ header h1 {
     margin-bottom: 20px;
 }
 
-/* 管理者登入 */
-.admin-login {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 30px;
-    border-radius: 15px;
-    margin-bottom: 30px;
-}
-
-.admin-login h3 {
-    color: white;
-    margin-bottom: 20px;
-}
-
-.login-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.login-form input {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-.hint-text {
-    font-size: 0.9em;
-    opacity: 0.9;
-}
-
-.hint-text code {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.btn-small {
-    padding: 8px 16px;
-    font-size: 14px;
-}
-
-/* 手動選擇店家 */
-#manualSelectSection {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px 0;
-}
-
-#manualSelectSection h3 {
-    color: white;
-    margin-bottom: 15px;
-}
-
-.shop-select {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-
 /* 菜單彈窗 */
 .modal {
     display: none;
@@ -658,21 +670,6 @@ header h1 {
 .modal-menu-item .description {
     color: #666;
     font-size: 0.9em;
-}
-
-.vote-card {
-    position: relative;
-}
-
-.view-menu-hint {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #f5576c;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.85em;
 }
 
 /* 響應式設計 */
