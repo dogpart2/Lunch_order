@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>團購訂便當系統</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍱 團購訂便當系統</h1>
+            <div class="date-display">📅 <span id="currentDate"></span></div>
+        </header>
+
+        <!-- 管理者控制面板 -->
+        <div class="admin-panel" id="adminPanel">
+            <h2>🔧 管理者控制台</h2>
+            <div class="admin-controls">
+                <button id="startVoteBtn" class="btn btn-primary">開始投票</button>
+                <button id="endVoteBtn" class="btn btn-success" disabled>結束投票並選定店家</button>
+                <button id="openOrderBtn" class="btn btn-warning" disabled>開放訂購</button>
+                <button id="closeOrderBtn" class="btn btn-danger" disabled>結束訂購</button>
+                <button id="resetBtn" class="btn btn-secondary">重置系統</button>
+            </div>
+            <div class="status-display">
+                <strong>目前狀態：</strong> <span id="systemStatus">尚未開始</span>
+            </div>
+        </div>
+
+        <!-- 投票階段 -->
+        <div class="section" id="votingSection" style="display: none;">
+            <h2>📊 投票選擇今天的便當店</h2>
+            <p class="hint">請為您想吃的便當店投票（每人限投一票）</p>
+            
+            <div class="vote-grid" id="voteGrid"></div>
+            
+            <div class="vote-results">
+                <h3>即時票數統計</h3>
+                <div id="voteResults"></div>
+            </div>
+        </div>
+
+        <!-- 確定店家顯示 -->
+        <div class="section" id="selectedShopSection" style="display: none;">
+            <div class="selected-shop-banner">
+                <h2>🎉 今日便當店</h2>
+                <div class="shop-name" id="selectedShopName"></div>
+                <div class="vote-count" id="finalVoteCount"></div>
+            </div>
+        </div>
+
+        <!-- 訂購階段 -->
+        <div class="section" id="orderingSection" style="display: none;">
+            <h2>🛒 開始訂購</h2>
+            
+            <div class="menu-display" id="menuDisplay"></div>
+
+            <div class="order-form">
+                <h3>您的訂單</h3>
+                <div class="form-group">
+                    <label>姓名：</label>
+                    <input type="text" id="customerName" placeholder="請輸入您的姓名">
+                </div>
+                
+                <div id="orderItems"></div>
+                
+                <div class="total-display">
+                    <strong>總計：</strong> <span id="totalAmount">NT$ 0</span>
+                </div>
+                
+                <button id="submitOrderBtn" class="btn btn-primary btn-large">送出訂單</button>
+            </div>
+        </div>
+
+        <!-- 訂單統計 -->
+        <div class="section" id="summarySection" style="display: none;">
+            <h2>📋 訂單統計</h2>
+            <div class="summary-controls">
+                <button id="toggleSummaryBtn" class="btn btn-info">顯示/隱藏統計</button>
+            </div>
+            <div id="orderSummary" style="display: none;"></div>
+        </div>
+
+        <!-- 已結束訂購訊息 -->
+        <div class="section" id="closedSection" style="display: none;">
+            <div class="closed-message">
+                <h2>⏰ 訂購已結束</h2>
+                <p>今日訂購時間已截止，請等待下次訂購通知</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
