@@ -13,16 +13,39 @@
             <div class="date-display">📅 <span id="currentDate"></span></div>
         </header>
 
+        <!-- 管理者登入區 -->
+        <div class="admin-login" id="adminLogin">
+            <h3>🔐 管理者登入</h3>
+            <div class="login-form">
+                <input type="password" id="adminPassword" placeholder="請輸入管理者密碼">
+                <button id="loginBtn" class="btn btn-primary">登入</button>
+            </div>
+            <p class="hint-text">提示：預設密碼為 <code>admin123</code>（可在 script.js 修改）</p>
+        </div>
+
         <!-- 管理者控制面板 -->
-        <div class="admin-panel" id="adminPanel">
-            <h2>🔧 管理者控制台</h2>
+        <div class="admin-panel" id="adminPanel" style="display: none;">
+            <div class="admin-header">
+                <h2>🔧 管理者控制台</h2>
+                <button id="logoutBtn" class="btn btn-secondary btn-small">登出</button>
+            </div>
             <div class="admin-controls">
                 <button id="startVoteBtn" class="btn btn-primary">開始投票</button>
-                <button id="endVoteBtn" class="btn btn-success" disabled>結束投票並選定店家</button>
+                <button id="endVoteBtn" class="btn btn-success" disabled>結束投票</button>
                 <button id="openOrderBtn" class="btn btn-warning" disabled>開放訂購</button>
                 <button id="closeOrderBtn" class="btn btn-danger" disabled>結束訂購</button>
                 <button id="resetBtn" class="btn btn-secondary">重置系統</button>
             </div>
+            
+            <!-- 手動選擇店家 -->
+            <div id="manualSelectSection" style="display: none;">
+                <h3>📍 手動選擇店家</h3>
+                <select id="manualShopSelect" class="shop-select">
+                    <option value="">-- 請選擇便當店 --</option>
+                </select>
+                <button id="confirmShopBtn" class="btn btn-info">確定選擇</button>
+            </div>
+            
             <div class="status-display">
                 <strong>目前狀態：</strong> <span id="systemStatus">尚未開始</span>
             </div>
@@ -31,7 +54,7 @@
         <!-- 投票階段 -->
         <div class="section" id="votingSection" style="display: none;">
             <h2>📊 投票選擇今天的便當店</h2>
-            <p class="hint">請為您想吃的便當店投票（每人限投一票）</p>
+            <p class="hint">請為您想吃的便當店投票（每人限投一票），點擊店家可查看菜單</p>
             
             <div class="vote-grid" id="voteGrid"></div>
             
@@ -70,6 +93,7 @@
                 </div>
                 
                 <button id="submitOrderBtn" class="btn btn-primary btn-large">送出訂單</button>
+                <button id="cancelOrderBtn" class="btn btn-danger btn-large" style="display: none;">取消我的訂單</button>
             </div>
         </div>
 
@@ -87,6 +111,21 @@
             <div class="closed-message">
                 <h2>⏰ 訂購已結束</h2>
                 <p>今日訂購時間已截止，請等待下次訂購通知</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 菜單彈窗 -->
+    <div class="modal" id="menuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalShopName"></h2>
+                <button class="close-btn" onclick="closeMenuModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalMenuContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="voteFromModalBtn">投票給這家</button>
+                <button class="btn btn-secondary" onclick="closeMenuModal()">關閉</button>
             </div>
         </div>
     </div>

@@ -1,14 +1,28 @@
+// 管理者密碼（可在此修改）
+const ADMIN_PASSWORD = 'admin123';
+
 // 全域變數
+let isAdmin = false;
 let currentUser = null;
 let orderCart = {};
+let currentModalRestaurantId = null;
 
 // 頁面載入
 document.addEventListener('DOMContentLoaded', function() {
     initStorage();
     displayCurrentDate();
     setupEventListeners();
+    checkAdminStatus();
     updateUI();
 });
+
+// 檢查管理者狀態
+function checkAdminStatus() {
+    isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    if (isAdmin) {
+        showAdminPanel();
+    }
+}
 
 // 顯示當前日期
 function displayCurrentDate() {
@@ -20,18 +34,67 @@ function displayCurrentDate() {
 
 // 設定事件監聽
 function setupEventListeners() {
+    // 管理者登入
+    document.getElementById('loginBtn').addEventListener('click', adminLogin);
+    document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') adminLogin();
+    });
+    document.getElementById('logoutBtn').addEventListener('click', adminLogout);
+    
     // 管理者控制按鈕
     document.getElementById('startVoteBtn').addEventListener('click', startVoting);
     document.getElementById('endVoteBtn').addEventListener('click', endVoting);
+    document.getElementById('confirmShopBtn').addEventListener('click', confirmManualSelection);
     document.getElementById('openOrderBtn').addEventListener('click', openOrdering);
     document.getElementById('closeOrderBtn').addEventListener('click', closeOrdering);
     document.getElementById('resetBtn').addEventListener('click', resetSystem);
     
-    // 送出訂單
+    // 訂單相關
     document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+    document.getElementById('cancelOrderBtn').addEventListener('click', cancelOrder);
     
-    // 切換統計顯示
+    // 統計切換
     document.getElementById('toggleSummaryBtn').addEventListener('click', toggleSummary);
+}
+
+// 管理者登入
+function adminLogin() {
+    const password = document.getElementById('adminPassword').value;
+    if (password === ADMIN_PASSWORD) {
+        isAdmin = true;
+        sessionStorage.setItem('isAdmin', 'true');
+        showAdminPanel();
+        document.getElementById('adminPassword').value = '';
+    } else {
+        alert('密碼錯誤！');
+    }
+}
+
+// 顯示管理者面板
+function showAdminPanel() {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    populateManualShopSelect();
+}
+
+// 管理者登出
+function adminLogout() {
+    isAdmin = false;
+    sessionStorage.removeItem('isAdmin');
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+}
+
+// 填充手動選擇店家下拉選單
+function populateManualShopSelect() {
+    const select = document.getElementById('manualShopSelect');
+    select.innerHTML = '<option value="">-- 請選擇便當店 --</option>';
+    restaurants.forEach(restaurant => {
+        const option = document.createElement('option');
+        option.value = restaurant.id;
+        option.textContent = `${restaurant.name} (${restaurant.type})`;
+        select.appendChild(option);
+    });
 }
 
 // 更新UI
@@ -47,13 +110,23 @@ function updateUI() {
         'ordering': '🛒 訂購進行中',
         'closed': '⏰ 訂購已結束'
     };
-    document.getElementById('systemStatus').textContent = statusText[status];
     
-    // 更新按鈕狀態
-    document.getElementById('startVoteBtn').disabled = (status !== 'idle');
-    document.getElementById('endVoteBtn').disabled = (status !== 'voting');
-    document.getElementById('openOrderBtn').disabled = (status !== 'selected');
-    document.getElementById('closeOrderBtn').disabled = (status !== 'ordering');
+    const statusElement = document.getElementById('systemStatus');
+    if (statusElement) {
+        statusElement.textContent = statusText[status];
+    }
+    
+    if (isAdmin) {
+        // 更新按鈕狀態
+        document.getElementById('startVoteBtn').disabled = (status !== 'idle');
+        document.getElementById('endVoteBtn').disabled = (status !== 'voting');
+        document.getElementById('openOrderBtn').disabled = (status !== 'selected');
+        document.getElementById('closeOrderBtn').disabled = (status !== 'ordering');
+        
+        // 顯示/隱藏手動選擇區
+        document.getElementById('manualSelectSection').style.display = 
+            (status === 'voting') ? 'block' : 'none';
+    }
     
     // 顯示對應區塊
     document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
@@ -71,6 +144,7 @@ function updateUI() {
     
     if (status === 'ordering') {
         displayMenu();
+        checkUserOrder();
     }
     
     if (status === 'ordering' || status === 'closed') {
@@ -93,15 +167,68 @@ function displayVoting() {
     const data = getData();
     
     voteGrid.innerHTML = restaurants.map(restaurant => `
-        <div class="vote-card" onclick="castVote(${restaurant.id})">
-            <h3>${restaurant.name}</h3>
-            <p>類型：${restaurant.type}</p>
-            <p>平均價格：NT$ ${restaurant.avgPrice}</p>
-            <div class="vote-count-display" id="vote-${restaurant.id}">0 票</div>
+        <div class="vote-card" id="card-${restaurant.id}">
+            <div class="view-menu-hint">點擊查看菜單</div>
+            <div onclick="showMenuModal(${restaurant.id})">
+                <h3>${restaurant.name}</h3>
+                <p>類型：${restaurant.type}</p>
+                <p>平均價格：NT$ ${restaurant.avgPrice}</p>
+                <div class="vote-count-display" id="vote-${restaurant.id}">0 票</div>
+            </div>
         </div>
     `).join('');
     
     updateVoteResults();
+}
+
+// 顯示菜單彈窗
+function showMenuModal(restaurantId) {
+    currentModalRestaurantId = restaurantId;
+    const restaurant = restaurants.find(r => r.id === restaurantId);
+    
+    document.getElementById('modalShopName').textContent = restaurant.name;
+    
+    const menuContent = `
+        <div class="modal-menu-grid">
+            ${restaurant.menu.map(item => `
+                <div class="modal-menu-item">
+                    <h4>${item.name}</h4>
+                    <div class="price">NT$ ${item.price}</div>
+                    <div class="description">${item.description}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    document.getElementById('modalMenuContent').innerHTML = menuContent;
+    
+    // 設定投票按鈕
+    const voteBtn = document.getElementById('voteFromModalBtn');
+    const data = getData();
+    if (data.systemStatus === 'voting') {
+        voteBtn.style.display = 'inline-block';
+        voteBtn.onclick = () => {
+            castVote(restaurantId);
+            closeMenuModal();
+        };
+    } else {
+        voteBtn.style.display = 'none';
+    }
+    
+    document.getElementById('menuModal').style.display = 'block';
+}
+
+// 關閉菜單彈窗
+function closeMenuModal() {
+    document.getElementById('menuModal').style.display = 'none';
+}
+
+// 點擊彈窗外部關閉
+window.onclick = function(event) {
+    const modal = document.getElementById('menuModal');
+    if (event.target === modal) {
+        closeMenuModal();
+    }
 }
 
 // 投票
@@ -112,7 +239,7 @@ function castVote(restaurantId) {
     const data = getData();
     
     // 檢查是否已投票
-    if (Object.values(data.votes).includes(userName)) {
+    if (Object.values(data.votes).flat().includes(userName)) {
         alert('您已經投過票了！');
         return;
     }
@@ -166,7 +293,7 @@ function updateVoteResults() {
     }).join('');
 }
 
-// 結束投票
+// 結束投票（自動選擇得票最高）
 function endVoting() {
     const data = getData();
     
@@ -183,7 +310,8 @@ function endVoting() {
     });
     
     if (!selectedId) {
-        alert('沒有任何投票，無法選定店家！');
+        // 沒有投票，顯示手動選擇提示
+        alert('目前沒有任何投票，請使用下方的手動選擇店家功能。');
         return;
     }
     
@@ -191,6 +319,31 @@ function endVoting() {
     data.systemStatus = 'selected';
     saveData(data);
     updateUI();
+    
+    const restaurant = restaurants.find(r => r.id === selectedId);
+    alert(`已選定：${restaurant.name} (獲得 ${maxVotes} 票)`);
+}
+
+// 確認手動選擇
+function confirmManualSelection() {
+    const selectedId = parseInt(document.getElementById('manualShopSelect').value);
+    
+    if (!selectedId) {
+        alert('請先選擇一家便當店！');
+        return;
+    }
+    
+    const restaurant = restaurants.find(r => r.id === selectedId);
+    
+    if (confirm(`確定選擇「${restaurant.name}」作為今日便當店嗎？`)) {
+        const data = getData();
+        data.selectedRestaurant = selectedId;
+        data.systemStatus = 'selected';
+        saveData(data);
+        updateUI();
+        
+        alert(`已選定：${restaurant.name}`);
+    }
 }
 
 // 顯示選定的店家
@@ -201,7 +354,12 @@ function displaySelectedShop() {
     if (restaurant) {
         document.getElementById('selectedShopName').textContent = restaurant.name;
         const votes = data.votes[restaurant.id] ? data.votes[restaurant.id].length : 0;
-        document.getElementById('finalVoteCount').textContent = `獲得 ${votes} 票`;
+        
+        if (votes > 0) {
+            document.getElementById('finalVoteCount').textContent = `獲得 ${votes} 票`;
+        } else {
+            document.getElementById('finalVoteCount').textContent = '管理者指定';
+        }
     }
 }
 
@@ -283,6 +441,33 @@ function updateOrderDisplay() {
     document.getElementById('totalAmount').textContent = `NT$ ${total}`;
 }
 
+// 檢查用戶是否已訂購
+function checkUserOrder() {
+    const userName = prompt('請輸入您的姓名以查看或建立訂單：');
+    if (!userName) return;
+    
+    currentUser = userName;
+    const data = getData();
+    const existingOrder = data.orders.find(order => order.customerName === userName);
+    
+    if (existingOrder) {
+        // 已有訂單，顯示取消按鈕
+        document.getElementById('submitOrderBtn').style.display = 'none';
+        document.getElementById('cancelOrderBtn').style.display = 'block';
+        document.getElementById('customerName').value = userName;
+        document.getElementById('customerName').disabled = true;
+        
+        // 顯示現有訂單
+        alert(`您已經訂購過了！\n總金額：NT$ ${existingOrder.total}\n\n如需取消訂單，請點擊「取消我的訂單」按鈕。`);
+    } else {
+        // 新訂單
+        document.getElementById('submitOrderBtn').style.display = 'block';
+        document.getElementById('cancelOrderBtn').style.display = 'none';
+        document.getElementById('customerName').value = userName;
+        document.getElementById('customerName').disabled = false;
+    }
+}
+
 // 送出訂單
 function submitOrder() {
     const customerName = document.getElementById('customerName').value.trim();
@@ -303,7 +488,7 @@ function submitOrder() {
     
     // 檢查是否重複訂購
     if (data.orders.some(order => order.customerName === customerName)) {
-        alert('您已經訂購過了！如需修改請聯絡管理員。');
+        alert('您已經訂購過了！如需修改請先取消訂單。');
         return;
     }
     
@@ -329,7 +514,38 @@ function submitOrder() {
     updateOrderDisplay();
     displayOrderSummary();
     
-    alert('訂單送出成功！');
+    alert(`訂單送出成功！\n總金額：NT$ ${order.total}`);
+    
+    // 切換按鈕
+    document.getElementById('submitOrderBtn').style.display = 'none';
+    document.getElementById('cancelOrderBtn').style.display = 'block';
+}
+
+// 取消訂單
+function cancelOrder() {
+    const customerName = document.getElementById('customerName').value.trim();
+    
+    if (!confirm(`確定要取消「${customerName}」的訂單嗎？`)) {
+        return;
+    }
+    
+    const data = getData();
+    data.orders = data.orders.filter(order => order.customerName !== customerName);
+    saveData(data);
+    
+    // 清空購物車和表單
+    orderCart = {};
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerName').disabled = false;
+    displayMenu();
+    updateOrderDisplay();
+    displayOrderSummary();
+    
+    // 切換按鈕
+    document.getElementById('submitOrderBtn').style.display = 'block';
+    document.getElementById('cancelOrderBtn').style.display = 'none';
+    
+    alert('訂單已取消！');
 }
 
 // 顯示訂單統計
