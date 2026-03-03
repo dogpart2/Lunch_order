@@ -168,7 +168,6 @@ function displayVoting() {
     
     voteGrid.innerHTML = restaurants.map(restaurant => `
         <div class="vote-card" id="card-${restaurant.id}">
-            <div class="view-menu-hint">點擊查看菜單</div>
             <div onclick="showMenuModal(${restaurant.id})">
                 <h3>${restaurant.name}</h3>
                 <p>類型：${restaurant.type}</p>
