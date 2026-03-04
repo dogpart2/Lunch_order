@@ -624,6 +624,41 @@ header h1 {
     margin-bottom: 20px;
 }
 
+/* 狀態訊息 */
+.status-message {
+    text-align: center;
+    padding: 60px 40px;
+    border-radius: 15px;
+}
+
+.info-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.message-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+}
+
+.status-message h2 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.status-message p {
+    font-size: 1.2em;
+    margin: 10px 0;
+    opacity: 0.95;
+}
+
+.status-message .small-text {
+    font-size: 1em;
+    margin-top: 20px;
+    opacity: 0.8;
+}
+
 /* 菜單彈窗 */
 .modal {
     display: none;
