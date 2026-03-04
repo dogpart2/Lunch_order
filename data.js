@@ -95,19 +95,24 @@ const initStorage = async () => {
 // 獲取資料
 const getData = async () => {
     try {
-        const status = await window.storage.get(STORAGE_KEYS.SYSTEM_STATUS);
-        const selectedRestaurant = await window.storage.get(STORAGE_KEYS.SELECTED_RESTAURANT);
-        const votes = await window.storage.get(STORAGE_KEYS.VOTES);
-        const orders = await window.storage.get(STORAGE_KEYS.ORDERS);
+        const results = await Promise.all([
+            window.storage.get(STORAGE_KEYS.SYSTEM_STATUS).catch(() => null),
+            window.storage.get(STORAGE_KEYS.SELECTED_RESTAURANT).catch(() => null),
+            window.storage.get(STORAGE_KEYS.VOTES).catch(() => null),
+            window.storage.get(STORAGE_KEYS.ORDERS).catch(() => null)
+        ]);
+        
+        const [status, selectedRestaurant, votes, orders] = results;
         
         return {
-            systemStatus: status ? status.value : 'idle',
-            selectedRestaurant: selectedRestaurant ? parseInt(selectedRestaurant.value) || null : null,
-            votes: votes ? JSON.parse(votes.value) : {},
-            orders: orders ? JSON.parse(orders.value) : []
+            systemStatus: status?.value || 'idle',
+            selectedRestaurant: selectedRestaurant?.value ? parseInt(selectedRestaurant.value) || null : null,
+            votes: votes?.value ? JSON.parse(votes.value) : {},
+            orders: orders?.value ? JSON.parse(orders.value) : []
         };
     } catch (error) {
         console.error('獲取資料失敗:', error);
+        // 返回預設值而不是拋出錯誤
         return {
             systemStatus: 'idle',
             selectedRestaurant: null,
