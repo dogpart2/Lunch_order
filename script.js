@@ -72,13 +72,7 @@ async function confirmUserLogin() {
     hideAllLogins();
     
     // 立即更新UI以顯示當前系統狀態
-    const data = await getData();
     await updateUI();
-    
-    // 如果系統還沒開始，給使用者提示
-    if (data.systemStatus === 'idle') {
-        alert('歡迎！目前管理者尚未開始投票，請稍後再回來查看。\n\n系統會每5秒自動更新，當管理者開始投票時您就會看到投票區。');
-    }
 }
 
 // 隱藏所有登入介面
@@ -166,81 +160,96 @@ function populateManualShopSelect() {
 
 // 更新UI
 async function updateUI() {
-    const data = await getData();
-    const status = data.systemStatus;
-    
-    // 更新狀態顯示（只有管理者看得到）
-    const statusElement = document.getElementById('systemStatus');
-    if (statusElement && isAdmin) {
-        const statusText = {
-            'idle': '尚未開始',
-            'voting': '🗳️ 投票進行中',
-            'selected': '✅ 已選定店家',
-            'ordering': '🛒 訂購進行中',
-            'closed': '⏰ 訂購已結束'
-        };
-        statusElement.textContent = statusText[status];
-    }
-    
-    if (isAdmin) {
-        // 更新按鈕狀態
-        document.getElementById('startVoteBtn').disabled = (status !== 'idle');
-        document.getElementById('endVoteBtn').disabled = (status !== 'voting');
-        document.getElementById('openOrderBtn').disabled = (status !== 'selected');
-        document.getElementById('closeOrderBtn').disabled = (status !== 'ordering');
+    try {
+        const data = await getData();
+        const status = data.systemStatus;
         
-        // 顯示/隱藏手動選擇區
-        document.getElementById('manualSelectSection').style.display = 
-            (status === 'voting') ? 'block' : 'none';
-    }
-    
-    // 如果已登入（管理者或一般使用者）才顯示內容
-    if (isAdmin || isUser) {
-        // 一般使用者和管理者都可以看到的內容區塊
-        document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
-        document.getElementById('selectedShopSection').style.display = (status === 'selected' || status === 'ordering' || status === 'closed') ? 'block' : 'none';
-        document.getElementById('orderingSection').style.display = (status === 'ordering') ? 'block' : 'none';
-        document.getElementById('closedSection').style.display = (status === 'closed') ? 'block' : 'none';
+        // 更新狀態顯示（只有管理者看得到）
+        const statusElement = document.getElementById('systemStatus');
+        if (statusElement && isAdmin) {
+            const statusText = {
+                'idle': '尚未開始',
+                'voting': '🗳️ 投票進行中',
+                'selected': '✅ 已選定店家',
+                'ordering': '🛒 訂購進行中',
+                'closed': '⏰ 訂購已結束'
+            };
+            statusElement.textContent = statusText[status];
+        }
         
-        // 訂單統計只有管理者可以看到
         if (isAdmin) {
-            document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
+            // 更新按鈕狀態
+            document.getElementById('startVoteBtn').disabled = (status !== 'idle');
+            document.getElementById('endVoteBtn').disabled = (status !== 'voting');
+            document.getElementById('openOrderBtn').disabled = (status !== 'selected');
+            document.getElementById('closeOrderBtn').disabled = (status !== 'ordering');
+            
+            // 顯示/隱藏手動選擇區
+            document.getElementById('manualSelectSection').style.display = 
+                (status === 'voting') ? 'block' : 'none';
+        }
+        
+        // 如果已登入（管理者或一般使用者）才顯示內容
+        if (isAdmin || isUser) {
+            // 根據狀態顯示對應區塊
+            document.getElementById('idleSection').style.display = (status === 'idle' && isUser) ? 'block' : 'none';
+            document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
+            document.getElementById('selectedShopSection').style.display = (status === 'selected' || status === 'ordering' || status === 'closed') ? 'block' : 'none';
+            document.getElementById('orderingSection').style.display = (status === 'ordering') ? 'block' : 'none';
+            document.getElementById('closedSection').style.display = (status === 'closed') ? 'block' : 'none';
+            
+            // 訂單統計只有管理者可以看到
+            if (isAdmin) {
+                document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
+            } else {
+                document.getElementById('summarySection').style.display = 'none';
+            }
+            
+            // 根據狀態更新內容
+            if (status === 'voting') {
+                await displayVoting();
+            } else if (status === 'selected' || status === 'ordering' || status === 'closed') {
+                await displaySelectedShop();
+            }
+            
+            if (status === 'ordering') {
+                await displayMenu();
+                // 只在第一次進入訂購階段時詢問姓名
+                if (!currentUser) {
+                    await checkUserOrder();
+                }
+            }
+            
+            if (isAdmin && (status === 'ordering' || status === 'closed')) {
+                await displayOrderSummary();
+            }
         } else {
+            // 未登入時隱藏所有功能區塊
+            document.getElementById('idleSection').style.display = 'none';
+            document.getElementById('votingSection').style.display = 'none';
+            document.getElementById('selectedShopSection').style.display = 'none';
+            document.getElementById('orderingSection').style.display = 'none';
             document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('closedSection').style.display = 'none';
         }
-        
-        // 根據狀態更新內容
-        if (status === 'voting') {
-            await displayVoting();
-        } else if (status === 'selected' || status === 'ordering' || status === 'closed') {
-            await displaySelectedShop();
-        }
-        
-        if (status === 'ordering') {
-            await displayMenu();
-            await checkUserOrder();
-        }
-        
-        if (isAdmin && (status === 'ordering' || status === 'closed')) {
-            await displayOrderSummary();
-        }
-    } else {
-        // 未登入時隱藏所有功能區塊
-        document.getElementById('votingSection').style.display = 'none';
-        document.getElementById('selectedShopSection').style.display = 'none';
-        document.getElementById('orderingSection').style.display = 'none';
-        document.getElementById('summarySection').style.display = 'none';
-        document.getElementById('closedSection').style.display = 'none';
+    } catch (error) {
+        console.error('更新UI失敗:', error);
     }
 }
 
 // 開始投票
 async function startVoting() {
-    const data = await getData();
-    data.systemStatus = 'voting';
-    data.votes = {};
-    await saveData(data);
-    await updateUI();
+    try {
+        const data = await getData();
+        data.systemStatus = 'voting';
+        data.votes = {};
+        await saveData(data);
+        await updateUI();
+        console.log('投票已開始');
+    } catch (error) {
+        console.error('開始投票失敗:', error);
+        alert('開始投票失敗，請檢查網路連線後重試');
+    }
 }
 
 // 顯示投票區
