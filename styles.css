@@ -58,6 +58,76 @@ header h1 {
     font-size: 1.1em;
 }
 
+/* 登入選擇 */
+.login-selection {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.login-selection h2 {
+    color: white;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+.login-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-user {
+    background: #28a745;
+    color: white;
+    min-width: 200px;
+}
+
+.btn-user:hover {
+    background: #218838;
+}
+
+.btn-admin {
+    background: #dc3545;
+    color: white;
+    min-width: 200px;
+}
+
+.btn-admin:hover {
+    background: #c82333;
+}
+
+/* 一般使用者登入 */
+.user-login {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.user-login h3 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.user-info {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.user-info p {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
 /* 管理者登入 */
 .admin-login {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
