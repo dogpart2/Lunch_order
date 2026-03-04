@@ -67,26 +67,64 @@ const restaurants = [
     }
 ];
 
-// 初始化儲存資料（使用內存存儲）
-const initStorage = () => {
-    if (!localStorage.getItem('lunchOrderData')) {
-        const initialData = {
-            systemStatus: 'idle', // idle, voting, selected, ordering, closed
-            selectedRestaurant: null,
-            votes: {},
-            orders: [],
-            currentDate: new Date().toLocaleDateString('zh-TW')
-        };
-        localStorage.setItem('lunchOrderData', JSON.stringify(initialData));
+// 使用雲端儲存 (window.storage API)
+const STORAGE_KEYS = {
+    SYSTEM_STATUS: 'lunch_system_status',
+    SELECTED_RESTAURANT: 'lunch_selected_restaurant',
+    VOTES: 'lunch_votes',
+    ORDERS: 'lunch_orders'
+};
+
+// 初始化儲存資料
+const initStorage = async () => {
+    try {
+        // 檢查系統狀態是否存在
+        const status = await window.storage.get(STORAGE_KEYS.SYSTEM_STATUS);
+        if (!status) {
+            // 初始化所有資料
+            await window.storage.set(STORAGE_KEYS.SYSTEM_STATUS, 'idle');
+            await window.storage.set(STORAGE_KEYS.SELECTED_RESTAURANT, '');
+            await window.storage.set(STORAGE_KEYS.VOTES, JSON.stringify({}));
+            await window.storage.set(STORAGE_KEYS.ORDERS, JSON.stringify([]));
+        }
+    } catch (error) {
+        console.error('初始化儲存失敗:', error);
     }
 };
 
 // 獲取資料
-const getData = () => {
-    return JSON.parse(localStorage.getItem('lunchOrderData'));
+const getData = async () => {
+    try {
+        const status = await window.storage.get(STORAGE_KEYS.SYSTEM_STATUS);
+        const selectedRestaurant = await window.storage.get(STORAGE_KEYS.SELECTED_RESTAURANT);
+        const votes = await window.storage.get(STORAGE_KEYS.VOTES);
+        const orders = await window.storage.get(STORAGE_KEYS.ORDERS);
+        
+        return {
+            systemStatus: status ? status.value : 'idle',
+            selectedRestaurant: selectedRestaurant ? parseInt(selectedRestaurant.value) || null : null,
+            votes: votes ? JSON.parse(votes.value) : {},
+            orders: orders ? JSON.parse(orders.value) : []
+        };
+    } catch (error) {
+        console.error('獲取資料失敗:', error);
+        return {
+            systemStatus: 'idle',
+            selectedRestaurant: null,
+            votes: {},
+            orders: []
+        };
+    }
 };
 
 // 儲存資料
-const saveData = (data) => {
-    localStorage.setItem('lunchOrderData', JSON.stringify(data));
+const saveData = async (data) => {
+    try {
+        await window.storage.set(STORAGE_KEYS.SYSTEM_STATUS, data.systemStatus);
+        await window.storage.set(STORAGE_KEYS.SELECTED_RESTAURANT, String(data.selectedRestaurant || ''));
+        await window.storage.set(STORAGE_KEYS.VOTES, JSON.stringify(data.votes));
+        await window.storage.set(STORAGE_KEYS.ORDERS, JSON.stringify(data.orders));
+    } catch (error) {
+        console.error('儲存資料失敗:', error);
+    }
 };
