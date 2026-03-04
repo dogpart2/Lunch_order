@@ -13,14 +13,35 @@
             <div class="date-display">📅 <span id="currentDate"></span></div>
         </header>
 
+        <!-- 選擇登入方式 -->
+        <div class="login-selection" id="loginSelection">
+            <h2>請選擇登入方式</h2>
+            <div class="login-buttons">
+                <button class="btn btn-user btn-large" onclick="showUserLogin()">👤 一般使用者</button>
+                <button class="btn btn-admin btn-large" onclick="showAdminLogin()">🔐 管理者</button>
+            </div>
+        </div>
+
         <!-- 管理者登入區 -->
-        <div class="admin-login" id="adminLogin">
+        <div class="admin-login" id="adminLogin" style="display: none;">
             <h3>🔐 管理者登入</h3>
             <div class="login-form">
                 <input type="password" id="adminPassword" placeholder="請輸入管理者密碼">
                 <button id="loginBtn" class="btn btn-primary">登入</button>
+                <button class="btn btn-secondary" onclick="backToSelection()">返回</button>
             </div>
             <p class="hint-text">提示：預設密碼為 <code>admin123</code>（可在 script.js 修改）</p>
+        </div>
+
+        <!-- 一般使用者登入區 -->
+        <div class="user-login" id="userLogin" style="display: none;">
+            <h3>👤 一般使用者</h3>
+            <div class="user-info">
+                <p>歡迎參與團購訂便當！</p>
+                <p>您可以進行投票和訂購。</p>
+            </div>
+            <button class="btn btn-primary btn-large" onclick="confirmUserLogin()">進入系統</button>
+            <button class="btn btn-secondary btn-large" onclick="backToSelection()">返回</button>
         </div>
 
         <!-- 管理者控制面板 -->
