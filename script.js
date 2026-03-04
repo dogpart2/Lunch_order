@@ -66,18 +66,18 @@ function backToSelection() {
 }
 
 // 確認一般使用者登入
-function confirmUserLogin() {
+async function confirmUserLogin() {
     isUser = true;
     sessionStorage.setItem('isUser', 'true');
     hideAllLogins();
     
     // 立即更新UI以顯示當前系統狀態
-    const data = getData();
-    updateUI();
+    const data = await getData();
+    await updateUI();
     
     // 如果系統還沒開始，給使用者提示
     if (data.systemStatus === 'idle') {
-        alert('歡迎！目前管理者尚未開始投票，請稍後再回來查看。');
+        alert('歡迎！目前管理者尚未開始投票，請稍後再回來查看。\n\n系統會每5秒自動更新，當管理者開始投票時您就會看到投票區。');
     }
 }
 
@@ -144,12 +144,12 @@ function showAdminPanel() {
 }
 
 // 管理者登出
-function adminLogout() {
+async function adminLogout() {
     isAdmin = false;
     sessionStorage.removeItem('isAdmin');
     document.getElementById('adminPanel').style.display = 'none';
     showLoginSelection();
-    updateUI();
+    await updateUI();
 }
 
 // 填充手動選擇店家下拉選單
@@ -264,7 +264,7 @@ async function displayVoting() {
 }
 
 // 顯示菜單彈窗
-function showMenuModal(restaurantId) {
+async function showMenuModal(restaurantId) {
     currentModalRestaurantId = restaurantId;
     const restaurant = restaurants.find(r => r.id === restaurantId);
     
@@ -286,7 +286,7 @@ function showMenuModal(restaurantId) {
     
     // 設定投票按鈕
     const voteBtn = document.getElementById('voteFromModalBtn');
-    const data = getData();
+    const data = await getData();
     if (data.systemStatus === 'voting') {
         voteBtn.style.display = 'inline-block';
         voteBtn.onclick = () => {
@@ -314,11 +314,11 @@ window.onclick = function(event) {
 }
 
 // 投票
-function castVote(restaurantId) {
+async function castVote(restaurantId) {
     const userName = prompt('請輸入您的姓名：');
     if (!userName) return;
     
-    const data = getData();
+    const data = await getData();
     
     // 檢查是否已投票
     if (Object.values(data.votes).flat().includes(userName)) {
@@ -332,14 +332,14 @@ function castVote(restaurantId) {
     }
     data.votes[restaurantId].push(userName);
     
-    saveData(data);
-    updateVoteResults();
+    await saveData(data);
+    await updateVoteResults();
     alert('投票成功！');
 }
 
 // 更新投票結果
-function updateVoteResults() {
-    const data = getData();
+async function updateVoteResults() {
+    const data = await getData();
     const totalVotes = Object.values(data.votes).reduce((sum, voters) => sum + voters.length, 0);
     
     // 更新每個店家的票數
@@ -376,8 +376,8 @@ function updateVoteResults() {
 }
 
 // 結束投票（自動選擇得票最高）
-function endVoting() {
-    const data = getData();
+async function endVoting() {
+    const data = await getData();
     
     // 找出得票最高的店家
     let maxVotes = 0;
@@ -399,15 +399,15 @@ function endVoting() {
     
     data.selectedRestaurant = selectedId;
     data.systemStatus = 'selected';
-    saveData(data);
-    updateUI();
+    await saveData(data);
+    await updateUI();
     
     const restaurant = restaurants.find(r => r.id === selectedId);
     alert(`已選定：${restaurant.name} (獲得 ${maxVotes} 票)`);
 }
 
 // 確認手動選擇
-function confirmManualSelection() {
+async function confirmManualSelection() {
     const selectedId = parseInt(document.getElementById('manualShopSelect').value);
     
     if (!selectedId) {
@@ -418,19 +418,19 @@ function confirmManualSelection() {
     const restaurant = restaurants.find(r => r.id === selectedId);
     
     if (confirm(`確定選擇「${restaurant.name}」作為今日便當店嗎？`)) {
-        const data = getData();
+        const data = await getData();
         data.selectedRestaurant = selectedId;
         data.systemStatus = 'selected';
-        saveData(data);
-        updateUI();
+        await saveData(data);
+        await updateUI();
         
         alert(`已選定：${restaurant.name}`);
     }
 }
 
 // 顯示選定的店家
-function displaySelectedShop() {
-    const data = getData();
+async function displaySelectedShop() {
+    const data = await getData();
     const restaurant = restaurants.find(r => r.id === data.selectedRestaurant);
     
     if (restaurant) {
@@ -446,17 +446,17 @@ function displaySelectedShop() {
 }
 
 // 開放訂購
-function openOrdering() {
-    const data = getData();
+async function openOrdering() {
+    const data = await getData();
     data.systemStatus = 'ordering';
     data.orders = [];
-    saveData(data);
-    updateUI();
+    await saveData(data);
+    await updateUI();
 }
 
 // 顯示菜單
-function displayMenu() {
-    const data = getData();
+async function displayMenu() {
+    const data = await getData();
     const restaurant = restaurants.find(r => r.id === data.selectedRestaurant);
     
     if (!restaurant) return;
@@ -482,8 +482,8 @@ function displayMenu() {
 }
 
 // 改變數量
-function changeQuantity(itemId, change) {
-    const data = getData();
+async function changeQuantity(itemId, change) {
+    const data = await getData();
     const restaurant = restaurants.find(r => r.id === data.selectedRestaurant);
     const item = restaurant.menu.find(m => m.id === itemId);
     
@@ -524,12 +524,12 @@ function updateOrderDisplay() {
 }
 
 // 檢查用戶是否已訂購
-function checkUserOrder() {
+async function checkUserOrder() {
     const userName = prompt('請輸入您的姓名以查看或建立訂單：');
     if (!userName) return;
     
     currentUser = userName;
-    const data = getData();
+    const data = await getData();
     const existingOrder = data.orders.find(order => order.customerName === userName);
     
     if (existingOrder) {
@@ -551,7 +551,7 @@ function checkUserOrder() {
 }
 
 // 送出訂單
-function submitOrder() {
+async function submitOrder() {
     const customerName = document.getElementById('customerName').value.trim();
     
     if (!customerName) {
@@ -566,7 +566,7 @@ function submitOrder() {
         return;
     }
     
-    const data = getData();
+    const data = await getData();
     
     // 檢查是否重複訂購
     if (data.orders.some(order => order.customerName === customerName)) {
@@ -587,14 +587,14 @@ function submitOrder() {
     };
     
     data.orders.push(order);
-    saveData(data);
+    await saveData(data);
     
     // 清空購物車
     orderCart = {};
     document.getElementById('customerName').value = '';
-    displayMenu();
+    await displayMenu();
     updateOrderDisplay();
-    displayOrderSummary();
+    await displayOrderSummary();
     
     alert(`訂單送出成功！\n總金額：NT$ ${order.total}`);
     
@@ -604,24 +604,24 @@ function submitOrder() {
 }
 
 // 取消訂單
-function cancelOrder() {
+async function cancelOrder() {
     const customerName = document.getElementById('customerName').value.trim();
     
     if (!confirm(`確定要取消「${customerName}」的訂單嗎？`)) {
         return;
     }
     
-    const data = getData();
+    const data = await getData();
     data.orders = data.orders.filter(order => order.customerName !== customerName);
-    saveData(data);
+    await saveData(data);
     
     // 清空購物車和表單
     orderCart = {};
     document.getElementById('customerName').value = '';
     document.getElementById('customerName').disabled = false;
-    displayMenu();
+    await displayMenu();
     updateOrderDisplay();
-    displayOrderSummary();
+    await displayOrderSummary();
     
     // 切換按鈕
     document.getElementById('submitOrderBtn').style.display = 'block';
@@ -631,8 +631,8 @@ function cancelOrder() {
 }
 
 // 顯示訂單統計
-function displayOrderSummary() {
-    const data = getData();
+async function displayOrderSummary() {
+    const data = await getData();
     const summaryDiv = document.getElementById('orderSummary');
     
     if (data.orders.length === 0) {
@@ -723,26 +723,34 @@ function toggleSummary() {
 }
 
 // 結束訂購
-function closeOrdering() {
+async function closeOrdering() {
     if (!confirm('確定要結束訂購嗎？結束後將無法再訂購。')) {
         return;
     }
     
-    const data = getData();
+    const data = await getData();
     data.systemStatus = 'closed';
-    saveData(data);
-    updateUI();
+    await saveData(data);
+    await updateUI();
 }
 
 // 重置系統
-function resetSystem() {
+async function resetSystem() {
     if (!confirm('確定要重置整個系統嗎？所有資料將被清除！')) {
         return;
     }
     
-    localStorage.removeItem('lunchOrderData');
-    initStorage();
-    orderCart = {};
-    updateUI();
-    alert('系統已重置！');
+    try {
+        await window.storage.delete(STORAGE_KEYS.SYSTEM_STATUS);
+        await window.storage.delete(STORAGE_KEYS.SELECTED_RESTAURANT);
+        await window.storage.delete(STORAGE_KEYS.VOTES);
+        await window.storage.delete(STORAGE_KEYS.ORDERS);
+        await initStorage();
+        orderCart = {};
+        await updateUI();
+        alert('系統已重置！');
+    } catch (error) {
+        console.error('重置失敗:', error);
+        alert('重置失敗，請稍後再試');
+    }
 }
