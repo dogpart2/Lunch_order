@@ -324,6 +324,7 @@ header h1 {
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
+    padding-top: 45px; /* 增加上方空間給提示標籤 */
 }
 
 .vote-card:hover {
@@ -363,6 +364,8 @@ header h1 {
     padding: 5px 10px;
     border-radius: 15px;
     font-size: 0.85em;
+    z-index: 10; /* 確保在最上層但不遮擋內容 */
+    pointer-events: none; /* 讓點擊事件穿透到下層 */
 }
 
 .vote-results {
