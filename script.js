@@ -63,7 +63,15 @@ function confirmUserLogin() {
     isUser = true;
     sessionStorage.setItem('isUser', 'true');
     hideAllLogins();
+    
+    // 立即更新UI以顯示當前系統狀態
+    const data = getData();
     updateUI();
+    
+    // 如果系統還沒開始，給使用者提示
+    if (data.systemStatus === 'idle') {
+        alert('歡迎！目前管理者尚未開始投票，請稍後再回來查看。');
+    }
 }
 
 // 隱藏所有登入介面
@@ -179,33 +187,43 @@ function updateUI() {
             (status === 'voting') ? 'block' : 'none';
     }
     
-    // 一般使用者和管理者都可以看到的內容區塊
-    document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
-    document.getElementById('selectedShopSection').style.display = (status === 'selected' || status === 'ordering' || status === 'closed') ? 'block' : 'none';
-    document.getElementById('orderingSection').style.display = (status === 'ordering') ? 'block' : 'none';
-    document.getElementById('closedSection').style.display = (status === 'closed') ? 'block' : 'none';
-    
-    // 訂單統計只有管理者可以看到
-    if (isAdmin) {
-        document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
+    // 如果已登入（管理者或一般使用者）才顯示內容
+    if (isAdmin || isUser) {
+        // 一般使用者和管理者都可以看到的內容區塊
+        document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
+        document.getElementById('selectedShopSection').style.display = (status === 'selected' || status === 'ordering' || status === 'closed') ? 'block' : 'none';
+        document.getElementById('orderingSection').style.display = (status === 'ordering') ? 'block' : 'none';
+        document.getElementById('closedSection').style.display = (status === 'closed') ? 'block' : 'none';
+        
+        // 訂單統計只有管理者可以看到
+        if (isAdmin) {
+            document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
+        } else {
+            document.getElementById('summarySection').style.display = 'none';
+        }
+        
+        // 根據狀態更新內容
+        if (status === 'voting') {
+            displayVoting();
+        } else if (status === 'selected' || status === 'ordering' || status === 'closed') {
+            displaySelectedShop();
+        }
+        
+        if (status === 'ordering') {
+            displayMenu();
+            checkUserOrder();
+        }
+        
+        if (isAdmin && (status === 'ordering' || status === 'closed')) {
+            displayOrderSummary();
+        }
     } else {
+        // 未登入時隱藏所有功能區塊
+        document.getElementById('votingSection').style.display = 'none';
+        document.getElementById('selectedShopSection').style.display = 'none';
+        document.getElementById('orderingSection').style.display = 'none';
         document.getElementById('summarySection').style.display = 'none';
-    }
-    
-    // 根據狀態更新內容
-    if (status === 'voting') {
-        displayVoting();
-    } else if (status === 'selected' || status === 'ordering' || status === 'closed') {
-        displaySelectedShop();
-    }
-    
-    if (status === 'ordering') {
-        displayMenu();
-        checkUserOrder();
-    }
-    
-    if (isAdmin && (status === 'ordering' || status === 'closed')) {
-        displayOrderSummary();
+        document.getElementById('closedSection').style.display = 'none';
     }
 }
 
