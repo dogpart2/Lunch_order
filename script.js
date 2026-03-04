@@ -3,6 +3,7 @@ const ADMIN_PASSWORD = 'admin123';
 
 // 全域變數
 let isAdmin = false;
+let isUser = false;
 let currentUser = null;
 let orderCart = {};
 let currentModalRestaurantId = null;
@@ -12,16 +13,64 @@ document.addEventListener('DOMContentLoaded', function() {
     initStorage();
     displayCurrentDate();
     setupEventListeners();
-    checkAdminStatus();
+    checkLoginStatus();
     updateUI();
 });
 
-// 檢查管理者狀態
-function checkAdminStatus() {
+// 檢查登入狀態
+function checkLoginStatus() {
     isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    isUser = sessionStorage.getItem('isUser') === 'true';
+    
     if (isAdmin) {
+        hideAllLogins();
         showAdminPanel();
+    } else if (isUser) {
+        hideAllLogins();
+    } else {
+        showLoginSelection();
     }
+}
+
+// 顯示登入選擇
+function showLoginSelection() {
+    document.getElementById('loginSelection').style.display = 'block';
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('userLogin').style.display = 'none';
+}
+
+// 顯示管理者登入
+function showAdminLogin() {
+    document.getElementById('loginSelection').style.display = 'none';
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('userLogin').style.display = 'none';
+}
+
+// 顯示一般使用者登入
+function showUserLogin() {
+    document.getElementById('loginSelection').style.display = 'none';
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('userLogin').style.display = 'block';
+}
+
+// 返回選擇畫面
+function backToSelection() {
+    showLoginSelection();
+}
+
+// 確認一般使用者登入
+function confirmUserLogin() {
+    isUser = true;
+    sessionStorage.setItem('isUser', 'true');
+    hideAllLogins();
+    updateUI();
+}
+
+// 隱藏所有登入介面
+function hideAllLogins() {
+    document.getElementById('loginSelection').style.display = 'none';
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('userLogin').style.display = 'none';
 }
 
 // 顯示當前日期
@@ -62,7 +111,10 @@ function adminLogin() {
     const password = document.getElementById('adminPassword').value;
     if (password === ADMIN_PASSWORD) {
         isAdmin = true;
+        isUser = false;
         sessionStorage.setItem('isAdmin', 'true');
+        sessionStorage.removeItem('isUser');
+        hideAllLogins();
         showAdminPanel();
         document.getElementById('adminPassword').value = '';
     } else {
@@ -72,7 +124,6 @@ function adminLogin() {
 
 // 顯示管理者面板
 function showAdminPanel() {
-    document.getElementById('adminLogin').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
     populateManualShopSelect();
 }
@@ -81,8 +132,9 @@ function showAdminPanel() {
 function adminLogout() {
     isAdmin = false;
     sessionStorage.removeItem('isAdmin');
-    document.getElementById('adminLogin').style.display = 'block';
     document.getElementById('adminPanel').style.display = 'none';
+    showLoginSelection();
+    updateUI();
 }
 
 // 填充手動選擇店家下拉選單
@@ -168,6 +220,7 @@ function displayVoting() {
     
     voteGrid.innerHTML = restaurants.map(restaurant => `
         <div class="vote-card" id="card-${restaurant.id}">
+            <div class="view-menu-hint">點擊查看菜單</div>
             <div onclick="showMenuModal(${restaurant.id})">
                 <h3>${restaurant.name}</h3>
                 <p>類型：${restaurant.type}</p>
