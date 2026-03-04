@@ -154,17 +154,16 @@ function updateUI() {
     const data = getData();
     const status = data.systemStatus;
     
-    // 更新狀態顯示
-    const statusText = {
-        'idle': '尚未開始',
-        'voting': '🗳️ 投票進行中',
-        'selected': '✅ 已選定店家',
-        'ordering': '🛒 訂購進行中',
-        'closed': '⏰ 訂購已結束'
-    };
-    
+    // 更新狀態顯示（只有管理者看得到）
     const statusElement = document.getElementById('systemStatus');
-    if (statusElement) {
+    if (statusElement && isAdmin) {
+        const statusText = {
+            'idle': '尚未開始',
+            'voting': '🗳️ 投票進行中',
+            'selected': '✅ 已選定店家',
+            'ordering': '🛒 訂購進行中',
+            'closed': '⏰ 訂購已結束'
+        };
         statusElement.textContent = statusText[status];
     }
     
@@ -180,12 +179,18 @@ function updateUI() {
             (status === 'voting') ? 'block' : 'none';
     }
     
-    // 顯示對應區塊
+    // 一般使用者和管理者都可以看到的內容區塊
     document.getElementById('votingSection').style.display = (status === 'voting') ? 'block' : 'none';
     document.getElementById('selectedShopSection').style.display = (status === 'selected' || status === 'ordering' || status === 'closed') ? 'block' : 'none';
     document.getElementById('orderingSection').style.display = (status === 'ordering') ? 'block' : 'none';
-    document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
     document.getElementById('closedSection').style.display = (status === 'closed') ? 'block' : 'none';
+    
+    // 訂單統計只有管理者可以看到
+    if (isAdmin) {
+        document.getElementById('summarySection').style.display = (status === 'ordering' || status === 'closed') ? 'block' : 'none';
+    } else {
+        document.getElementById('summarySection').style.display = 'none';
+    }
     
     // 根據狀態更新內容
     if (status === 'voting') {
@@ -199,7 +204,7 @@ function updateUI() {
         checkUserOrder();
     }
     
-    if (status === 'ordering' || status === 'closed') {
+    if (isAdmin && (status === 'ordering' || status === 'closed')) {
         displayOrderSummary();
     }
 }
