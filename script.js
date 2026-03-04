@@ -9,12 +9,19 @@ let orderCart = {};
 let currentModalRestaurantId = null;
 
 // 頁面載入
-document.addEventListener('DOMContentLoaded', function() {
-    initStorage();
+document.addEventListener('DOMContentLoaded', async function() {
+    await initStorage();
     displayCurrentDate();
     setupEventListeners();
     checkLoginStatus();
-    updateUI();
+    await updateUI();
+    
+    // 每5秒自動更新一次，確保看到最新狀態
+    setInterval(async () => {
+        if (isUser || isAdmin) {
+            await updateUI();
+        }
+    }, 5000);
 });
 
 // 檢查登入狀態
@@ -158,8 +165,8 @@ function populateManualShopSelect() {
 }
 
 // 更新UI
-function updateUI() {
-    const data = getData();
+async function updateUI() {
+    const data = await getData();
     const status = data.systemStatus;
     
     // 更新狀態顯示（只有管理者看得到）
@@ -204,18 +211,18 @@ function updateUI() {
         
         // 根據狀態更新內容
         if (status === 'voting') {
-            displayVoting();
+            await displayVoting();
         } else if (status === 'selected' || status === 'ordering' || status === 'closed') {
-            displaySelectedShop();
+            await displaySelectedShop();
         }
         
         if (status === 'ordering') {
-            displayMenu();
-            checkUserOrder();
+            await displayMenu();
+            await checkUserOrder();
         }
         
         if (isAdmin && (status === 'ordering' || status === 'closed')) {
-            displayOrderSummary();
+            await displayOrderSummary();
         }
     } else {
         // 未登入時隱藏所有功能區塊
@@ -228,18 +235,18 @@ function updateUI() {
 }
 
 // 開始投票
-function startVoting() {
-    const data = getData();
+async function startVoting() {
+    const data = await getData();
     data.systemStatus = 'voting';
     data.votes = {};
-    saveData(data);
-    updateUI();
+    await saveData(data);
+    await updateUI();
 }
 
 // 顯示投票區
-function displayVoting() {
+async function displayVoting() {
     const voteGrid = document.getElementById('voteGrid');
-    const data = getData();
+    const data = await getData();
     
     voteGrid.innerHTML = restaurants.map(restaurant => `
         <div class="vote-card" id="card-${restaurant.id}">
@@ -253,7 +260,7 @@ function displayVoting() {
         </div>
     `).join('');
     
-    updateVoteResults();
+    await updateVoteResults();
 }
 
 // 顯示菜單彈窗
